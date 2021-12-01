@@ -1,11 +1,9 @@
 package planningmanagement;
 
-import com.sun.org.apache.xpath.internal.operations.Or;
-
 /**
- * 运输模型
+ * 指派模型
  */
-public class TransportationTable {
+public class AppointModels {
 
     /**
      * 计算线性规划
@@ -381,11 +379,14 @@ public class TransportationTable {
 //        double[] xResultArray = {15, 25, 10};
 //        double[] yResultArray = {5, 15, 15, 15d};
 
+//        double[][] conditionResult = {{15, 10, 9}, {9, 15, 10}, {10, 12, 8}};
+//        double[] xResultArray = {1, 1, 1};
+//        double[] yResultArray = {1, 1, 1};
+
         double[][] conditionResult = {{15, 10, 9}, {9, 15, 10}, {10, 12, 8}};
         double[] xResultArray = {1, 1, 1};
         double[] yResultArray = {1, 1, 1};
 
-        System.out.println(400 * 6 + 800 * 6 + 300 * 4 + 200 * 500);
         System.out.println(getMax(conditionResult, xResultArray, yResultArray));
     }
 }

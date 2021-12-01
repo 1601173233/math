@@ -13,11 +13,13 @@ public class Pure {
      * @param resultArray 结果参数
      * @return 结果集
      */
-    public static Integer getMax(double[][] conditionArray, double[] conditionResult, double[] resultArray) {
+    public static Double getMax(double[][] conditionArray,
+                                 double[] conditionResult,
+                                 double[] resultArray,
+                                 double best) {
         double[] conditionParams = new double[conditionArray[0].length];
         int[] notNullIndex = new int[conditionResult.length];
         int[] nullIndex = new int[conditionResult.length];
-        int best = 0;
 
         for (int i = 0; i < nullIndex.length; i++) {
             nullIndex[i] = i;
@@ -130,7 +132,7 @@ public class Pure {
         int outIndex = 0;
         double outMin = Double.MAX_VALUE;
         for (int i = 0; i < notNullIndex.length; i++) {
-            if (conditionArray[i][inIndex] == 0) {
+            if (conditionArray[i][nullIndex[inIndex]] == 0) {
                 continue;
             }
 
@@ -165,6 +167,6 @@ public class Pure {
             mResultArray[i] = resultArray[i];
         }
 
-        System.out.println(getMax(mConditionArray, conditionResult, mResultArray));
+        System.out.println(getMax(mConditionArray, conditionResult, mResultArray, 0));
     }
 }

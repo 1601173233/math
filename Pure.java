@@ -8,70 +8,69 @@ public class Pure {
     /**
      * 计算线性规划
      *
-     * @param conditionArray 条件参数
-     * @param conditionResult 条件结果矩阵
-     * @param resultArray 结果参数
      * @return 结果集
      */
-    public static Double getMax(double[][] conditionArray,
-                                 double[] conditionResult,
-                                 double[] resultArray,
-                                 double best) {
-        double[] conditionParams = new double[conditionArray[0].length];
-        int[] notNullIndex = new int[conditionResult.length];
-        int[] nullIndex = new int[conditionResult.length];
-
-        for (int i = 0; i < nullIndex.length; i++) {
-            nullIndex[i] = i;
-        }
-
-        for (int i = 0; i < notNullIndex.length; i++) {
-            notNullIndex[i] = conditionParams.length + i - notNullIndex.length;
-        }
-
-        // 初始解
-        for (int i = 0; i < notNullIndex.length; i++) {
-            conditionParams[notNullIndex[i]] = conditionResult[i];
-        }
+    public static Double getMax(PureParams pureParams) {
+        int[] outIndexArray = pureParams.outIndexArray;
+        int[] inIndexArray = pureParams.inIndexArray;
+        double[][] conditionArray = pureParams.conditionArray;
+        double[] conditionResult = pureParams.conditionResult;
+        double[] resultArray = pureParams.resultArray;
+        double best = pureParams.best;
 
         // 出入基
-        while (!isBest(resultArray)) {
+        while (!isBest(pureParams.resultArray)) {
             // 入基下标
-            int inIndex = getInIndex(nullIndex, resultArray);
+            int inIndex = getInIndex(pureParams);
 
             // 出基下标
-            int outIndex = getOutIndex(conditionArray, conditionResult, notNullIndex, nullIndex, inIndex);
+            int outIndex = getOutIndex(pureParams, inIndex);
 
-            int nullIndexNum = nullIndex[inIndex];
-            int notNullIndexNum = notNullIndex[outIndex];
+            int inIndexNum = outIndexArray[inIndex];
+            int outIndexNum = inIndexArray[outIndex];
 
-            notNullIndex[outIndex] = nullIndexNum;
-            nullIndex[outIndex] = notNullIndexNum;
+            inIndexArray[outIndex] = inIndexNum;
+            outIndexArray[inIndex] = outIndexNum;
 
-            double conditionNum = conditionArray[outIndex][inIndex];
+            System.out.println("入基变量:" + (inIndexNum + 1) + "，出基变量:" + (outIndexNum + 1));
+
+            // 矩阵转换
+            double divisor = conditionArray[outIndex][inIndexNum];
             for (int i = 0; i < conditionArray[0].length; i++) {
-                conditionArray[outIndex][i] /= conditionNum;
+                conditionArray[outIndex][i] /= divisor;
             }
-
-            conditionResult[outIndex] = conditionResult[outIndex] / conditionNum;
+            conditionResult[outIndex] = conditionResult[outIndex] / divisor;
 
             for (int i = 0; i < conditionArray.length; i++) {
                 if (i != outIndex) {
-                    double outConditionNum = conditionArray[i][outIndex];
-                    for (int j = 0; j < conditionArray[0].length; j++) {
-                        conditionArray[i][j] += - outConditionNum * conditionArray[outIndex][j];
+                    divisor = conditionArray[i][inIndexNum];
+                    for (int j = 0; j < conditionArray[i].length; j++) {
+                        conditionArray[i][j] -= divisor * conditionArray[outIndex][j];
                     }
-
-                    conditionResult[i] += -outConditionNum * conditionResult[outIndex];
+                    conditionResult[i] -= divisor * conditionResult[outIndex];
                 }
             }
 
-            double outConditionNum = resultArray[outIndex];
+            double outConditionNum = resultArray[inIndexNum];
             for (int i = 0; i < resultArray.length; i++) {
                 resultArray[i] += -outConditionNum * conditionArray[outIndex][i];
             }
 
             best += -outConditionNum * conditionResult[outIndex];
+
+//            System.out.println("\r\nresultArray:");
+//            MathUtil.printResult(pureParams.resultArray);
+//            System.out.println("\nconditionArray:");
+//            MathUtil.printResult(pureParams.conditionArray);
+//            System.out.println("\nconditionResult:");
+//            MathUtil.printResult(pureParams.conditionResult);
+//            System.out.println("\ninIndexArray:");
+//            MathUtil.printResult(pureParams.inIndexArray);
+//            System.out.println("\noutIndexArray:");
+//            MathUtil.printResult(pureParams.outIndexArray);
+//            System.out.println("\nbest:");
+//            System.out.println(best);
+//            System.out.println();
         }
 
         return best;
@@ -94,16 +93,18 @@ public class Pure {
     /**
      * 获取入基变量
      *
-     * @param nullIndex 非基变量数组
-     * @param resultArray 结果系数
+     * @param pureParams 参数
      * @return 入基变量
      */
-    public static int getInIndex(int[] nullIndex, double[] resultArray) {
+    public static int getInIndex(PureParams pureParams) {
         // 获取入基变量
         int inIndex = 0;
         double inMin = 0;
-        for (int i = 0; i < nullIndex.length; i++) {
-            int index = nullIndex[i];
+        double[] resultArray = pureParams.resultArray;
+        int[] outIndexArray = pureParams.outIndexArray;
+
+        for (int i = 0; i < outIndexArray.length; i++) {
+            int index = outIndexArray[i];
             if (resultArray[index] < 0 && resultArray[index] < inMin) {
                 inIndex = i;
                 inMin = resultArray[index];
@@ -116,27 +117,22 @@ public class Pure {
     /**
      * 获取出基变量
      *
-     * @param conditionArray 条件系数
-     * @param conditionResult 条件结果
-     * @param notNullIndex 基变量数组
-     * @param nullIndex 非基变量数组
+     * @param pureParams 参数
      * @param inIndex 非基变量数组下标
      * @return 出基变量
      */
-    public static int getOutIndex(double[][] conditionArray,
-                                  double[] conditionResult,
-                                  int[] notNullIndex,
-                                  int[] nullIndex,
+    public static int getOutIndex(PureParams pureParams,
                                   int inIndex) {
 
         int outIndex = 0;
         double outMin = Double.MAX_VALUE;
-        for (int i = 0; i < notNullIndex.length; i++) {
-            if (conditionArray[i][nullIndex[inIndex]] == 0) {
+        for (int i = 0; i < pureParams.inIndexArray.length; i++) {
+            double condition = pureParams.conditionArray[i][pureParams.outIndexArray[inIndex]];
+            if (condition == 0) {
                 continue;
             }
 
-            double temp = conditionResult[i] / conditionArray[i][nullIndex[inIndex]];
+            double temp = pureParams.conditionResult[i] / condition;
 
             if (temp > 0 && temp < outMin) {
                 outIndex = i;
@@ -148,25 +144,22 @@ public class Pure {
     }
 
     public static void main(String[] args) {
-        double[][] conditionArray = new double[][]{{6, 4}, {1, 2}, {-1, 1}, {0, 1}};
-        double[] conditionResult = new double[]{24, 6, 1, 2};
-        double[] resultArray = new double[]{-5, -4};
+        double[][] conditionArray = new double[][]{{1, 2}, {4, 0}, {0, 4}};
+        double[] conditionResult = new double[]{8, 16, 12};
+        double[] resultArray = new double[]{-2, -3};
 
-        double[][] mConditionArray = new double[conditionArray.length][conditionArray.length + conditionArray[0].length];
-        double[] mResultArray = new double[conditionArray.length + resultArray.length];
+//        double[][] conditionArray = new double[][]{{6, 4}, {1, 2}, {-1, 1}, {0, 1}};
+//        double[] conditionResult = new double[]{24, 6, 1, 2};
+//        double[] resultArray = new double[]{-5, -4};
 
-        for (int i = 0; i < conditionArray.length; i++) {
-            for (int j = 0; j < conditionArray[0].length; j++) {
-                mConditionArray[i][j] = conditionArray[i][j];
-            }
+        PureParams pureParams = new PureParams();
+        pureParams.resultArray = resultArray;
+        pureParams.conditionArray = conditionArray;
+        pureParams.conditionResult = conditionResult;
+        pureParams.best = 0;
 
-            mConditionArray[i][conditionArray[0].length + i] = 1;
-        }
-
-        for (int i = 0; i < resultArray.length; i++) {
-            mResultArray[i] = resultArray[i];
-        }
-
-        System.out.println(getMax(mConditionArray, conditionResult, mResultArray, 0));
+        // 转换为标准型
+        PureCheckNum.convertStandard(pureParams);
+        System.out.println(getMax(pureParams));
     }
 }

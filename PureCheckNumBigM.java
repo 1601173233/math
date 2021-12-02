@@ -3,7 +3,7 @@ package planningmanagement;
 /**
  * 单纯形式（大M法）
  */
-public class PureBigM {
+public class PureCheckNumBigM {
     /**
      * 设置大M
      *
@@ -31,14 +31,10 @@ public class PureBigM {
 
         for (int i = 0; i < resultArray.length; i++) {
             mResultArray[i] = resultArray[i];
-
-            for (int j = 0; j < pureParams.needBigMIndex.length; j++) {
-                mResultArray[i] += conditionArray[pureParams.needBigMIndex[j]][i] * pureParams.bigM;
-            }
         }
 
         for (int j = 0; j < pureParams.needBigMIndex.length; j++) {
-            pureParams.best += pureParams.conditionResult[pureParams.needBigMIndex[j]] * pureParams.bigM;
+            mResultArray[pureParams.needBigMIndex[j] + resultArray.length] = pureParams.bigM;
         }
 
         pureParams.conditionArray = mConditionArray;
@@ -69,11 +65,9 @@ public class PureBigM {
 
 
         int M = -100;
-        // 大M的下标
-        int[] eqIndex = {0, 1};
         double[][] conditionArray = new double[][]{{3, 1, 0}, {4, 3, -1}, {1, 2, 0}};
         double[] conditionResult = new double[]{3, 6, 4};
-        double[] resultArray = new double[]{4, 1, 0};
+        double[] resultArray = new double[]{-4, -1, 0};
 
 //        int M = -10000;
 //        // 大M的下标
@@ -95,6 +89,6 @@ public class PureBigM {
         pureParams.bigM = M;
 
         convertStandard(pureParams);
-        System.out.println(Pure.getMax(pureParams));
+        System.out.println(PureCheckNum.getMax(pureParams));
     }
 }

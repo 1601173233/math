@@ -22,8 +22,9 @@ public class PureCheckNum {
     public static double getMax(PureParams pureParams) {
         double best = pureParams.best;
 
+        int time = 0;
         while (true) {
-//            System.out.println("第" + ++i + "次循环");
+            System.out.println("第" + ++time + "次循环");
             // 1.计算检验数
             double[] checkNumArray = getCheckNum(pureParams);
 
@@ -34,18 +35,20 @@ public class PureCheckNum {
 
             int outIndex = getOutIndex(pureParams, inIndex);
 
-//            System.out.println("入基变量:" + (pureParams.outIndexArray[inIndex] + 1) + "，出基变量:" + (pureParams.inIndexArray[outIndex] + 1));
+            System.out.println("入基变量:" + (pureParams.outIndexArray[inIndex] + 1) + "，出基变量:" + (pureParams.inIndexArray[outIndex] + 1));
             inOutCal(pureParams, inIndex, outIndex);
         }
 
         // 计算结果集
-        double[] xArray = new double[pureParams.resultArray.length];
+        double[] resultArray = pureParams.resultArray;
+
+        double[] xArray = new double[resultArray.length];
         for (int inIndex = 0 ; inIndex < pureParams.inIndexArray.length; inIndex++) {
             xArray[pureParams.inIndexArray[inIndex]] = pureParams.conditionResult[inIndex];
         }
 
-        for (int i = 0; i < pureParams.resultArray.length; i++) {
-            best += xArray[i] * pureParams.resultArray[i];
+        for (int i = 0; i < resultArray.length; i++) {
+            best += xArray[i] * resultArray[i];
         }
 
         return best;
@@ -154,15 +157,15 @@ public class PureCheckNum {
             conditionResult[i] -= divisor * conditionResult[outIndex];
         }
 
-        MathUtil.printResult(pureParams.resultArray);
-        System.out.println();
-        MathUtil.printResult(pureParams.conditionArray);
-        System.out.println();
-        MathUtil.printResult(pureParams.inIndexArray);
-        System.out.println();
-        MathUtil.printResult(pureParams.outIndexArray);
-        System.out.println();
-        MathUtil.printResult(pureParams.inIndexResultArray);
+//        MathUtil.printResult(pureParams.resultArray);
+//        System.out.println();
+//        MathUtil.printResult(pureParams.conditionArray);
+//        System.out.println();
+//        MathUtil.printResult(pureParams.inIndexArray);
+//        System.out.println();
+//        MathUtil.printResult(pureParams.outIndexArray);
+//        System.out.println();
+//        MathUtil.printResult(pureParams.inIndexResultArray);
     }
 
     /**
@@ -274,30 +277,40 @@ public class PureCheckNum {
         convertStandard(pureParams);
         getMax(pureParams);
     }
+}
 
-    /**
-     * 参数
-     */
-    static class PureParams {
-        /** 约束条件 参数矩阵 */
-        double[][] conditionArray;
 
-        /** 约束条件结果 */
-        double[] conditionResult;
+/**
+ * 参数
+ */
+class PureParams {
+    /** 约束条件 参数矩阵 */
+    double[][] conditionArray;
 
-        /** 目标函数的价值系数 */
-        double[] resultArray;
+    /** 约束条件结果 */
+    double[] conditionResult;
 
-        /** 入基变量坐标 */
-        int[] inIndexArray;
+    /** 目标函数的价值系数 */
+    double[] resultArray;
 
-        /** 出基变量坐标 */
-        int[] outIndexArray;
+    /** 入基变量坐标 */
+    int[] inIndexArray;
 
-        /** 入基变量 - 价格系数 */
-        double[] inIndexResultArray;
+    /** 出基变量坐标 */
+    int[] outIndexArray;
 
-        /** 当前最大值 */
-        int best;
-    }
+    /** 入基变量 - 价格系数 */
+    double[] inIndexResultArray;
+
+    /** 需要大M的下标 */
+    int[] needBigMIndex;
+
+    /** 大M的下标 */
+    int[] bigMIndex;
+
+    /** 当前最大值 */
+    double best;
+
+    /** 大M */
+    double bigM;
 }
